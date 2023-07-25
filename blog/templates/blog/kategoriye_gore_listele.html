@@ -1,0 +1,36 @@
+{% extends 'blog/post_list.html' %}
+{% load static %}
+
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="{% static 'blog/css/style.css' %}">
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <title>{{ category.name }}</title>
+    <style>
+        hr.rounded {
+        border-top: 8px solid #bbb;
+        border-radius: 5px;
+}
+    </style>
+    
+
+</head>
+<body>
+    <h1>{{ category.name }}</h1>
+    <div class="sayfa_yapisi">
+    <hr class="rounded">
+    {% for post in posts %}
+        <a href="{% url 'post_detail' pk=post.pk %}"><h3>{{ post.title }}</h3></a>
+        <p>{{ post.content }}</p>
+        <p align = "right">{{ post.author }}</p>
+        <p align = "right">{{ post.pub_date }} - {{ category.name }} </p>
+        <hr>
+    {% endfor %}
+    </div>
+    
+</body>
+</html>

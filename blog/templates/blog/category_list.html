@@ -1,0 +1,131 @@
+{% extends 'blog/post_list.html' %}
+{% load static %}
+
+{% block content %}
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="{% static 'blog/css/style.css' %}">
+    <!-- Bootstrap CSS -->
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <title>Kategoriler</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            padding: 20px;
+        }
+
+        .category_ul {
+            list-style-type: none;
+            padding: 0;
+            text-align: center;
+            margin-top: 30px;
+        }
+
+        .category_ul li {
+            margin-bottom: 20px;
+        }
+
+        .dropdown {
+            display: block;
+        }
+
+        .dropdown-content {
+            display: none;
+            position: relative;
+            background-color: #f9f9f9;
+            box-shadow: 0px 8px 16px 0px rgba(0, 0, 0, 0.2);
+            padding: 12px 16px;
+            left: 0;
+        }
+
+        .active .dropdown-content {
+            display: block;
+        }
+
+        .submenulist {
+            list-style: none;
+            padding: 0;
+            text-align:left;
+        }
+
+        .submenulist li {
+            margin-bottom: 25px;
+        }
+
+        .submenulist a {
+            color: #007bff;
+            text-decoration: none;
+            font-size: 20px;
+            transition: color 0.3s;
+        }
+
+        .submenulist a:hover {
+            color: red;
+        }
+
+        .mainmenubtn {
+            font-size: 24px;
+            font-weight: bold;
+            color: #007bff;
+            border: none;
+            background: none;
+            padding: 10px 0;
+            cursor: pointer;
+            transition: color 0.3s;
+        }
+
+        .mainmenubtn:hover {
+            color: red;
+        }
+
+    </style>
+
+</head>
+
+<body>
+
+    <div class="container">
+        <ul class="category_ul">
+            {% for category in categories %}
+            {% if category.parent_category is None %}
+            <li class="dropdown">
+                <button class="mainmenubtn">{{ category.name }}</button>
+                <ul class="dropdown-content submenulist">
+                    {% for subcategory in category.subcategories.all %}
+                    <li >  <span style="font-size:20px;  ">-</span>  <a  href="{% url 'kategoriye_gore_listele' subcategory.name %}">{{ subcategory.name }}</a></li>
+                    {% endfor %}
+                </ul>
+            </li>
+            {% endif %}
+            {% endfor %}
+        </ul>
+    </div>
+
+    <!-- Bootstrap JS ve jQuery -->
+    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.11.6/dist/umd/popper.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+
+    <script>
+        // Açılır menüleri kontrol etmek için jQuery kodu
+        $(document).ready(function() {
+            $('.mainmenubtn').click(function() {
+                var dropdownContent = $(this).next('.dropdown-content');
+                var isActive = dropdownContent.hasClass('active');
+                // Tüm açık alt kategorileri kapat
+                $('.dropdown-content').removeClass('active').hide();
+                // Sadece tıklanan kategorinin alt kategorilerini aç/kapat
+                if (!isActive) {
+                    dropdownContent.addClass('active').show();
+                }
+            });
+        });
+    </script>
+</body>
+
+</html>
+{% endblock %}

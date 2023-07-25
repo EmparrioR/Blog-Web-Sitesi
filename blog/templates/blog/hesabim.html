@@ -1,0 +1,97 @@
+{% extends 'blog/post_list.html' %}
+{%load static%}
+
+{% block content %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kullanıcı Profili</title>
+    <link rel="stylesheet" href="{% static 'blog/css/style.css' %}">
+    <!-- Bootstrap CSS -->
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            padding: 20px;
+        }
+
+        .profile-container {
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        .profile-card {
+            background-color: #f9f9f9;
+            padding: 20px;
+            border: 1px solid #ccc;
+            border-radius: 10px;
+        }
+
+        .profile-card h2 {
+            color: #007bff;
+            margin-bottom: 20px;
+        }
+
+        .post-list {
+            list-style: none;
+            padding: 0;
+            margin-top: 20px;
+        }
+
+        .post-item {
+            margin-bottom: 10px;
+        }
+
+        .post-item a {
+            color: #007bff;
+            text-decoration: none;
+            transition: color 0.3s;
+        }
+
+        .post-item a:hover {
+            color: #0056b3;
+        }
+
+        .logout-btn {
+            float: right;
+        }
+        
+    </style>
+</head>
+<body>
+    
+    <div class="profile-container">
+        {% if user.is_authenticated %}
+        <br>
+        <div class="profile-card">
+            <h2>Kullanıcı Bilgileri</h2>
+            <p>Kullanıcı Adı: {{ user.username }}</p>
+            <p>Email: {{ user.email }}</p>
+        </div>
+        <br>
+        <div class="profile-card">
+            <h2>Yayınlanan Postlar</h2>
+            <ul class="post-list">
+                {% for post in user.post_set.all %}
+                <li class="post-item">
+                    <a href="{% url 'post_detail' pk=post.pk %}">{{ post.title }}</a>
+                </li>
+                {% endfor %}
+            </ul>
+        </div>
+        <br>
+        <a href="{% url 'logout' %}" class="btn btn-primary logout-btn " style="">Çıkış Yap</a>
+        {% else %}
+        <p>Kullanıcı girişi yapılmamış.</p>
+        {% endif %}
+    </div>
+
+    <!-- Bootstrap JS ve jQuery -->
+    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.11.6/dist/umd/popper.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+</body>
+</html>
+{%endblock%}

@@ -1,0 +1,29 @@
+{% extends 'blog/post_list.html' %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    
+    <title>Document</title>
+    
+</head>
+<body>
+    {% block content %}
+<div class="container">
+    <div class="jumbotron">
+        <h2>{{ post.title }}</h2>
+        
+        <p>{{ post.content | safe | truncatechars:300 }}</p>
+        <p>{{ post.pub_date }}</p>
+        <p>Postu silmek istediğinize emin misiniz?</p>
+        <form method="post">
+            {% csrf_token %}
+            <button type="submit" class="btn btn-danger">Evet, Sil</button>
+            <a href="{% url 'post_detail' pk=post.pk %}" class="btn btn-secondary">Hayır, Geri Dön</a>
+        </form>
+    </div>
+</div>
+{% endblock %}
+</body>
+</html>

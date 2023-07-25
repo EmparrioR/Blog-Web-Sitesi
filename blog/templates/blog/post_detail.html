@@ -1,0 +1,205 @@
+{% extends 'blog/post_list.html' %}
+
+{%block content%}
+
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ post.title }}</title>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <link rel="stylesheet" href="{static 'blog/static/style.css'}">
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            padding: 20px;
+        }
+
+        .comment {
+            margin-bottom: 20px;
+            border: 1px solid #ccc;
+            padding: 10px;
+        }
+
+        .nested-comments {
+            margin-left: 40px; /* Indent nested comments to differentiate from main comments */
+        }
+
+        .nested-comment {
+            border: 1px solid #ccc;
+            padding: 10px;
+            margin-bottom: 10px;
+        }
+
+        .comment-form {
+            margin-top: 20px;
+            border: 1px solid #ccc;
+            padding: 10px;
+        }
+
+        .comment-form h3 {
+            margin-bottom: 10px;
+        }
+
+        .comment-form input[type="text"],
+        .comment-form textarea {
+            width: 100%;
+            padding: 5px;
+            margin-bottom: 10px;
+        }
+
+        .comment-form button {
+            background-color: #4CAF50;
+            color: white;
+            padding: 8px 16px;
+            border: none;
+            cursor: pointer;
+            font-size: 14px;
+        }
+
+        .comment-form button:hover {
+            background-color: #45a049;
+        }
+
+        .reply-link {
+            cursor: pointer;
+            color: #007bff;
+        }
+
+        .jumbotron p {
+            white-space: pre-wrap; 
+            word-wrap: break-word;
+        }
+
+        .collapse {
+            display: none;
+        }
+
+        .collapse.show {
+            display: block;
+        }
+
+    </style>
+    
+</head>
+
+<body>
+    <br>
+    <div class="container">
+        <div class="jumbotron">
+            
+            <h2>{{ post.title }}  
+                {% if user.is_superuser or user == post.author %}
+                <a style="text-decoration:none"  class="edit-link" href="{% url 'post_edit' pk=post.pk %}">
+                    <i style="font-size:25px">✏️</i>
+                </a>
+            <a style="font-size:25px" href="{% url 'post_delete' pk=post.pk %}" class="delete-link">
+               🗑️
+            </a>
+                    
+                {% endif %}
+            </h2> 
+            <br>
+            <br>
+            
+            <p>{{ post.content | safe }}</p>
+            <br>
+            <br>
+            <p class="text-muted">Yazar: {{ post.author | safe }}</p>
+            <p class="text-muted">{{ post.pub_date }} - {{ post.category }}</p>
+        </div>
+        {% if user.is_authenticated or request.user.is_superuser %}
+        
+        <div class="comment-form">
+            <h3>Yorum Yap</h3>
+            
+            <form action="{% url 'post_detail' pk=post.pk %}" method="post" class="validate-form">
+                
+                {% csrf_token %}
+                
+                {{ form.as_p }}
+                {{ form.media }}
+                <button style="align:right" type="submit" class="btn btn-success">Yorum Gönder</button>
+                
+            </form>
+        </div>
+        
+        <br>
+
+        {% else %}
+        <p style="text-align:center; color:red">Yorum yapmak için lütfen giriş yapınız</p>
+        {% endif%}
+        <br>
+
+        <h3>Yorumlar:</h3>
+        <div class="comments-container">
+            {% for comment in comments %}
+            <div class="comment">
+                
+                <p>{{ comment.text }}</p>
+                <p>{{ comment.author }} - {{ comment.pub_date }}</p>
+                {% if comment.author == request.user or request.user.is_superuser %}
+                <form action="{% url 'comment_delete' pk=comment.pk %}" method="post">
+                    {% csrf_token %}
+                    <input type="hidden" name="text" value="">
+                    <button type="submit" class="btn btn-danger">Yorumu Sil</button>
+                </form>
+                {% endif %}
+
+                <!-- Reply form for this comment -->
+                <br>
+                {% if user.is_authenticated or request.user.is_superuser%}
+                <div class="reply-form">
+                    <a class="reply-link" data-toggle="collapse" data-target="#reply-form-{{ comment.id }}"><p>Cevap Ver</p></a> 
+                    <div id="reply-form-{{ comment.id }}" class="collapse">
+                        <form method="post" class="validate-form">
+                            {% csrf_token %}
+                            
+                            {{ form.as_p }}
+                            {{ form.media }}
+                            <input type="hidden" name="parent_comment_id" value="{{ comment.id }}">
+                            <button type="submit" class="btn btn-primary">Yanıtı Gönder</button>
+                            
+                        </form>
+                        <br>
+                    </div>
+                </div>
+                {%endif%}
+
+                <!-- Display nested replies for this comment -->
+                <div class="nested-comments">
+                    {% for reply in comment.replies.all %}
+                    <div class="nested-comment">
+                        <p>{{ reply.text }}</p>
+                        <p>{{ reply.author }} - {{ reply.pub_date }}</p>
+                        {% if reply.author == request.user or request.user.is_superuser %}
+                        <form action="{% url 'comment_delete' pk=reply.pk %}" method="post">
+                            {% csrf_token %}
+                            <input type="hidden" name="text" value="">
+                            <button type="submit" class="btn btn-danger">Cevabı Sil</button>
+                        </form>
+                        {% endif %}
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+
+        {% if not comments %}
+        <p>Henüz yorum yapılmamış.</p>
+        {% endif %}
+    </div>
+    
+
+    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.11.6/dist/umd/popper.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+    
+    
+
+</body>
+{% endblock %}
+</html>

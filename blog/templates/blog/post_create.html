@@ -1,0 +1,36 @@
+{% extends 'blog/post_list.html' %}
+
+{% block content %}
+{% if user.is_authenticated %}
+<div class="container">
+  <div class="row justify-content-center">
+    <div class="col-md-6">
+      <div class="card mt-5">
+        <div class="card-header bg-primary text-white">
+          <h2 class="mb-0">Yeni Gönderi Oluştur</h2>
+        </div>
+        <div class="card-body">
+          <form method="post">
+            {% csrf_token %}
+            <div class="form-group">
+              <label for="{{ form.title.id_for_label }}">Başlık:</label>
+              {{ form.title }}
+            </div>
+            <div class="form-group">
+              <label for="{{ form.content.id_for_label }}">İçerik:</label>
+              {{ form.media }}
+              {{ form.content }}
+            </div>
+            <div class="form-group">
+              <label for="{{ form.category.id_for_label }}">Kategori:</label>
+              {{ form.category }}
+            </div>
+            <button type="submit" class="btn btn-primary btn-block">Gönder</button>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endif %}
+{% endblock %}
