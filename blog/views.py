@@ -1,18 +1,39 @@
 from django.shortcuts import render, get_object_or_404, redirect
-from .forms import PostForm, ReplyForm, CommentForm, UserCreationForm, PostCreateForm
-from .models import Post, Comment
-from .models import Category
+from .forms import PostForm,CommentForm, UserCreationForm, PostCreateForm
+from .models import Post, Comment, Category
 from django.db.models import Q
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from django.contrib.auth import authenticate, login
-from django.db.models import Prefetch
+from .serializers import CommentSerializer, PostSerializer
+
 from .forms import CategoryForm
+from rest_framework import generics
+
+
+from rest_framework.permissions import IsAuthenticated
 
 
 
 from .forms import PostForm
 
+from django.contrib.auth import authenticate
+from rest_framework.views import APIView
+from rest_framework.response import Response
+
+class UserLoginAPIView(APIView):
+    def post(self, request, format=None):
+        username = request.data.get('username')
+        password = request.data.get('password')
+
+        user = authenticate(username=username, password=password)
+
+        if user is not None:
+            # Kullanıcı kimlik doğrulama başarılı
+            return Response({"message": "Kullanıcı girişi başarılı."})
+        else:
+            # Kullanıcı kimlik doğrulama başarısız
+            return Response({"message": "Kullanıcı adı veya parola yanlış."}, status=401)
 
 # Create your views here.
 
@@ -165,3 +186,17 @@ def create_category(request):
     else:
         form = CategoryForm()
     return render(request, 'blog/create_category.html', {'form': form})
+
+
+class CommentAPIView(generics.RetrieveUpdateDestroyAPIView):
+    queryset = Comment.objects.all()
+    serializer_class = CommentSerializer
+
+class PostAPIView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request, format=None):
+        # Burada kullanıcının post listesini döndüren bir işlem yapabilirsiniz
+        posts = Post.objects.filter(author=request.user)
+        serializer = PostSerializer(posts, many=True)
+        return Response(serializer.data)

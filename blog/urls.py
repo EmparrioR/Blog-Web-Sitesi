@@ -1,6 +1,6 @@
 from django.urls import path
 from . import views
-from .views import kategoriye_gore_listele
+from .views import kategoriye_gore_listele, CommentAPIView, PostAPIView, UserLoginAPIView
 from django.contrib.auth import views as auth_views
 
 
@@ -21,4 +21,7 @@ urlpatterns = [
     path('post/create/', views.post_create, name='post_create'),
     path('post/<int:pk>/delete/', views.post_delete, name='post_delete'),
     path('create_category/', views.create_category, name='create_category'),
+    path('api/comments/<int:pk>/', CommentAPIView.as_view(), name='comment-api'),
+    path('api/posts/<int:pk>/', PostAPIView.as_view(), name='post-api'),
+    path('login/', UserLoginAPIView.as_view(), name='user-login'),
 ]   
