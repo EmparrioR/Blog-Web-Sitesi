@@ -4,38 +4,19 @@ from .models import Post, Comment, Category
 from django.db.models import Q
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
-from django.contrib.auth import authenticate, login
-from .serializers import CommentSerializer, PostSerializer
-
-from .forms import CategoryForm
+from .serializers import CommentSerializer, PostSerializer, CategorySerializer
+from .forms import CategoryForm, PostForm
 from rest_framework import generics
-
-
+from django.contrib.auth import authenticate, login
 from rest_framework.permissions import IsAuthenticated
-
-
-
-from .forms import PostForm
-
-from django.contrib.auth import authenticate
-from rest_framework.views import APIView
 from rest_framework.response import Response
-
-class UserLoginAPIView(APIView):
-    def post(self, request, format=None):
-        username = request.data.get('username')
-        password = request.data.get('password')
-
-        user = authenticate(username=username, password=password)
-
-        if user is not None:
-            # Kullanıcı kimlik doğrulama başarılı
-            return Response({"message": "Kullanıcı girişi başarılı."})
-        else:
-            # Kullanıcı kimlik doğrulama başarısız
-            return Response({"message": "Kullanıcı adı veya parola yanlış."}, status=401)
+from rest_framework import status
+from rest_framework.generics import ListCreateAPIView
+from rest_framework.permissions import IsAuthenticated, IsAdminUser
+from rest_framework.decorators import permission_classes
 
 # Create your views here.
+
 
 def register(request):
     if request.method == 'POST':
@@ -188,15 +169,49 @@ def create_category(request):
     return render(request, 'blog/create_category.html', {'form': form})
 
 
-class CommentAPIView(generics.RetrieveUpdateDestroyAPIView):
+class CategoryListCreateView(ListCreateAPIView):
+    queryset = Category.objects.all()
+    serializer_class = CategorySerializer
+    permission_classes = [IsAdminUser]
+    
+    def perform_create(self, serializer):
+        serializer.save(author=self.request.user)
+
+    def post(self, request, *args, **kwargs):
+        serializer = self.get_serializer(data=request.data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+class CommentListCreateView(ListCreateAPIView):
     queryset = Comment.objects.all()
     serializer_class = CommentSerializer
-
-class PostAPIView(APIView):
     permission_classes = [IsAuthenticated]
 
-    def get(self, request, format=None):
-        # Burada kullanıcının post listesini döndüren bir işlem yapabilirsiniz
-        posts = Post.objects.filter(author=request.user)
-        serializer = PostSerializer(posts, many=True)
-        return Response(serializer.data)
+    def perform_create(self, serializer):
+        serializer.save(author=self.request.user)
+
+    def post(self, request, *args, **kwargs):
+        request.data['author'] = self.request.user.id
+        serializer = self.get_serializer(data=request.data)
+        if serializer.is_valid():
+            self.perform_create(serializer)
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+    
+    
+class PostListCreateView(ListCreateAPIView):
+    queryset = Post.objects.all()
+    serializer_class = PostSerializer
+    permission_classes = [IsAuthenticated]
+
+    def perform_create(self, serializer):
+        serializer.save(author=self.request.user)
+
+    def post(self, request, *args, **kwargs):
+        serializer = self.get_serializer(data=request.data)
+        if serializer.is_valid():
+            self.perform_create(serializer)
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)

@@ -10,7 +10,7 @@
           <h2 class="mb-0">Yeni Gönderi Oluştur</h2>
         </div>
         <div class="card-body">
-          <form method="post">
+          <form method="post" action="">
             {% csrf_token %}
             <div class="form-group">
               <label for="{{ form.title.id_for_label }}">Başlık:</label>
@@ -31,6 +31,10 @@
       </div>
     </div>
   </div>
+</div>
+{% else %}
+<div class="alert alert-danger" role="alert">
+  Gönderi oluşturmak için giriş yapmalısınız!
 </div>
 {% endif %}
 {% endblock %}
