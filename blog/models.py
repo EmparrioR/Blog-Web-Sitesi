@@ -12,7 +12,7 @@ class Category(models.Model):
 
 class Comment(MPTTModel):
     post = models.ForeignKey('Post', on_delete=models.CASCADE, related_name='comments')
-    author = models.ForeignKey(User, on_delete=models.CASCADE, null=True, blank=True)
+    author = models.ForeignKey('auth.User', on_delete=models.CASCADE, null=True, blank=True)
     text = RichTextField(blank=True,null=True)
     pub_date = models.DateTimeField(auto_now_add=True)
     parent = TreeForeignKey('self', on_delete=models.CASCADE, null=True, blank=True, related_name='replies')
@@ -25,7 +25,9 @@ class Comment(MPTTModel):
         order_insertion_by = ['pub_date']
 
     def __str__(self):
-        return f"{self.author.username} - {self.text[:50]}"
+        author_username = self.author.username if self.author else 'Unknown'
+        return f"{author_username} - {self.text[:50]}"
+
 
 class Post(models.Model):
     author = models.ForeignKey('auth.User', on_delete=models.CASCADE)

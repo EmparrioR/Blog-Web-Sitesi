@@ -1,5 +1,5 @@
 from django.shortcuts import render, get_object_or_404, redirect
-from .forms import PostForm,CommentForm, UserCreationForm, PostCreateForm
+from .forms import PostForm,CommentForm, CustomUserCreationForm, PostCreateForm
 from .models import Post, Comment, Category
 from django.db.models import Q
 from django.contrib.auth.decorators import login_required
@@ -14,23 +14,21 @@ from rest_framework import status
 from rest_framework.generics import ListCreateAPIView
 from rest_framework.permissions import IsAuthenticated, IsAdminUser
 from rest_framework.decorators import permission_classes
+from django.http import JsonResponse
 
 # Create your views here.
 
 
 def register(request):
     if request.method == 'POST':
-        form = UserCreationForm(request.POST)
+        form = CustomUserCreationForm(request.POST)
         if form.is_valid():
             form.save()
-            username = form.cleaned_data.get('username')
-            password = form.cleaned_data.get('password1')
-            user = authenticate(username=username, password=password)
-            login(request, user)
-            return redirect('post_list')  
+            return redirect('post_list')  # Başka bir sayfaya yönlendirme
     else:
-        form = UserCreationForm()
+        form = CustomUserCreationForm()
     return render(request, 'blog/register.html', {'form': form})
+
 
 def post_edit(request, pk):
     post = get_object_or_404(Post, pk=pk)
@@ -118,9 +116,9 @@ def reply_to_comment(request, pk):
             reply.author = request.user
             reply.parent = comment
             reply.save()
-            # Cevap gönderme işlemi tamamlandıktan sonra formu temizleyerek sayfayı yeniden yüklüyoruz
+            
             return redirect('post_detail', pk=comment.post.pk)
-    # PRG: Redirect in case of GET request or form validation failure
+    
     return redirect('post_detail', pk=comment.post.pk)
 
 
@@ -163,14 +161,14 @@ def create_category(request):
         form = CategoryForm(request.POST)
         if form.is_valid():
             category = form.save()
-            return redirect('post_list')  # Veya istediğiniz başka bir sayfaya yönlendirin
+            return redirect('post_list') 
     else:
         form = CategoryForm()
     return render(request, 'blog/create_category.html', {'form': form})
 
 
 class CategoryListCreateView(ListCreateAPIView):
-    queryset = Category.objects.all()
+    queryset = Category.objects.all()  
     serializer_class = CategorySerializer
     permission_classes = [IsAdminUser]
     
@@ -180,7 +178,7 @@ class CategoryListCreateView(ListCreateAPIView):
     def post(self, request, *args, **kwargs):
         serializer = self.get_serializer(data=request.data)
         if serializer.is_valid():
-            serializer.save()
+            self.perform_create(serializer)
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
@@ -193,13 +191,12 @@ class CommentListCreateView(ListCreateAPIView):
         serializer.save(author=self.request.user)
 
     def post(self, request, *args, **kwargs):
-        request.data['author'] = self.request.user.id
         serializer = self.get_serializer(data=request.data)
         if serializer.is_valid():
             self.perform_create(serializer)
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-    
+
     
 class PostListCreateView(ListCreateAPIView):
     queryset = Post.objects.all()
@@ -215,3 +212,9 @@ class PostListCreateView(ListCreateAPIView):
             self.perform_create(serializer)
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+    
+def get_subcategories(request, category_id):
+    category = get_object_or_404(Category, pk=category_id)
+    subcategories = category.subcategories.all()
+    data = [{"id": subcategory.id, "name": subcategory.name} for subcategory in subcategories]
+    return JsonResponse(data, safe=False)    

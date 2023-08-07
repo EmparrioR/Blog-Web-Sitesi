@@ -10,7 +10,7 @@ urlpatterns = [
     path('', views.post_list, name='post_list'),
     path('post/<int:pk>/', views.post_detail, name='post_detail'),
     path('comment/reply/<int:pk>/', views.reply_to_comment, name='reply_to_comment'),
-    path('categories/', views.category_list, name='category_list'),
+    path('category_list/', views.category_list, name='category_list'),
     path('kategori/<str:category_name>/', kategoriye_gore_listele, name='kategoriye_gore_listele'),
     path('post/<int:pk>/edit/', views.post_edit, name='post_edit'),
     path('comment/<int:pk>/delete/', views.comment_delete, name='comment_delete'),
@@ -24,5 +24,5 @@ urlpatterns = [
     path('categories/', CategoryListCreateView.as_view(), name='category-list-create'),
     path('comments/', CommentListCreateView.as_view(), name='comment-list-create'),
     path('posts/', PostListCreateView.as_view(), name='post-list-create'),
-
+    path('get_subcategories/<int:category_id>/', views.get_subcategories, name='get_subcategories'),
 ]   

@@ -34,10 +34,12 @@ class ReplyForm(forms.ModelForm):
             'text': CKEditorWidget(),  
         }       
 
-class UserCreationForm(UserCreationForm):
+class CustomUserCreationForm(UserCreationForm):
+    email = forms.EmailField(required=True)
+
     class Meta:
         model = User
-        fields = ['username', 'email', 'password'] 
+        fields = ['username', 'email', 'password1', 'password2']
 
 
 
@@ -46,7 +48,7 @@ class PostCreateForm(forms.ModelForm):
         super(PostCreateForm, self).__init__(*args, **kwargs)
         
         # Alt kategorilere sahip olan kategorileri buluyor ve bunları parent_category kabul ediyoruz
-        self.fields['category'].queryset = Category.objects.filter(parent_category__isnull=False)
+        self.fields['category'].queryset = Category.objects.filter(parent_category__isnull=True)
 
     class Meta:
         model = Post

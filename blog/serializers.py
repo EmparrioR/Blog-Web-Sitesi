@@ -5,7 +5,7 @@ from django.contrib.auth.models import User
 class UserSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
-        fields = ['id', 'username', 'email']
+        fields = '__all__'
 
 class CommentSerializer(serializers.ModelSerializer):
     author = UserSerializer(read_only=True)  
@@ -17,7 +17,7 @@ class CategorySerializer(serializers.ModelSerializer):
     subcategories = serializers.SerializerMethodField()
 
     def get_subcategories(self, obj):
-        serializer = self.__class__(obj.subcategories.all(), many=True)
+        serializer = CategorySerializer(obj.subcategories.all(), many=True)
         return serializer.data
 
     class Meta:
