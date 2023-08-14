@@ -1,34 +1,50 @@
 from django.shortcuts import render, get_object_or_404, redirect
-from .forms import PostForm,CommentForm, CustomUserCreationForm, PostCreateForm
+from .forms import CommentForm, CustomUserCreationForm, PostCreateForm
 from .models import Post, Comment, Category
 from django.db.models import Q
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from .serializers import CommentSerializer, PostSerializer, CategorySerializer
-from .forms import CategoryForm, PostForm
-from rest_framework import generics
-from django.contrib.auth import authenticate, login
-from rest_framework.permissions import IsAuthenticated
+from .forms import CategoryForm
+
+from .serializers import CustomUserSerializer
+
 from rest_framework.response import Response
 from rest_framework import status
 from rest_framework.generics import ListCreateAPIView
 from rest_framework.permissions import IsAuthenticated, IsAdminUser
-from rest_framework.decorators import permission_classes
 from django.http import JsonResponse
+
+from rest_framework import serializers
+
+
+
+from rest_framework_simplejwt.tokens import RefreshToken
+
+from rest_framework.permissions import IsAuthenticated
+from rest_framework_simplejwt.authentication import JWTAuthentication
+
+from rest_framework.decorators import api_view
 
 # Create your views here.
 
 
+@api_view(['POST'])
 def register(request):
-    if request.method == 'POST':
-        form = CustomUserCreationForm(request.POST)
-        if form.is_valid():
-            form.save()
-            return redirect('post_list')  # Başka bir sayfaya yönlendirme
-    else:
-        form = CustomUserCreationForm()
-    return render(request, 'blog/register.html', {'form': form})
+    serializer = CustomUserSerializer(data=request.data)
+    if serializer.is_valid():
+        user = serializer.save()
 
+        refresh = RefreshToken.for_user(user)
+        access_token = refresh.access_token
+
+        response_data = {
+            'access_token': str(access_token),
+            'user': serializer.data,
+        }
+        return Response(response_data, status=status.HTTP_201_CREATED)
+    
+    return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 def post_edit(request, pk):
     post = get_object_or_404(Post, pk=pk)
@@ -176,13 +192,17 @@ def create_category(request):
 class CategoryListCreateView(ListCreateAPIView):
     queryset = Category.objects.all()  
     serializer_class = CategorySerializer
+    authentication_classes = [JWTAuthentication]
     permission_classes = [IsAdminUser]
     
     def perform_create(self, serializer):
-        parent_category_id = self.request.data.get('parent', None)
+        parent_category_name = self.request.data.get('parent_category_name', None)
         
-        if parent_category_id:
-            parent_category = Category.objects.get(id=parent_category_id)
+        if parent_category_name:
+            parent_category = Category.objects.filter(name=parent_category_name).first()
+            if not parent_category:
+                raise serializers.ValidationError("Üst kategori bulunamadı.")
+            
             serializer.save(parent_category=parent_category)
         else:
             serializer.save()
@@ -200,6 +220,7 @@ class CategoryListCreateView(ListCreateAPIView):
 class CommentListCreateView(ListCreateAPIView):
     queryset = Comment.objects.all()
     serializer_class = CommentSerializer
+    authentication_classes = [JWTAuthentication]
     permission_classes = [IsAuthenticated]
 
     def perform_create(self, serializer):
@@ -222,6 +243,7 @@ class CommentListCreateView(ListCreateAPIView):
 class PostListCreateView(ListCreateAPIView):
     queryset = Post.objects.all()
     serializer_class = PostSerializer
+    authentication_classes = [JWTAuthentication]
     permission_classes = [IsAuthenticated]
 
     def perform_create(self, serializer):

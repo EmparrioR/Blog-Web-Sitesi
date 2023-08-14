@@ -2,6 +2,9 @@ from django.urls import path
 from . import views
 from .views import kategoriye_gore_listele, CategoryListCreateView, CommentListCreateView, PostListCreateView
 from django.contrib.auth import views as auth_views
+from rest_framework_simplejwt.authentication import JWTAuthentication
+from rest_framework.permissions import IsAuthenticated
+from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
 
 
 
@@ -21,8 +24,13 @@ urlpatterns = [
     path('post/create/', views.post_create, name='post_create'),
     path('post/<int:pk>/delete/', views.post_delete, name='post_delete'),
     path('create_category/', views.create_category, name='create_category'),
-    path('categories/', CategoryListCreateView.as_view(), name='category-list-create'),
-    path('comments/', CommentListCreateView.as_view(), name='comment-list-create'),
-    path('posts/', PostListCreateView.as_view(), name='post-list-create'),
-    path('get_subcategories/<int:category_id>/', views.get_subcategories, name='get_subcategories'), 
+    path('get_subcategories/<int:category_id>/', views.get_subcategories, name='get_subcategories'),
+    
+    path('categories/', CategoryListCreateView.as_view(authentication_classes=[JWTAuthentication], permission_classes=[IsAuthenticated]), name='category-list-create'),
+    path('comments/', CommentListCreateView.as_view(authentication_classes=[JWTAuthentication], permission_classes=[IsAuthenticated]), name='comment-list-create'),
+    path('posts/', PostListCreateView.as_view(authentication_classes=[JWTAuthentication], permission_classes=[IsAuthenticated]), name='post-list-create'), 
+
+    path('api/token/', TokenObtainPairView.as_view(), name='token_obtain_pair'),  # Token alımı
+    path('api/token/refresh/', TokenRefreshView.as_view(), name='token_refresh'),
+
 ]   
