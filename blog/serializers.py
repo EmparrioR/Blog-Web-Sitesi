@@ -14,15 +14,23 @@ class CommentSerializer(serializers.ModelSerializer):
         fields = '__all__'
 
 class CategorySerializer(serializers.ModelSerializer):
-    subcategories = serializers.SerializerMethodField()
-
-    def get_subcategories(self, obj):
-        serializer = CategorySerializer(obj.subcategories.all(), many=True)
-        return serializer.data
-
     class Meta:
         model = Category
-        fields = ['id', 'name', 'parent_category', 'subcategories']
+        fields = ['id', 'name', 'parent_category']
+        
+    def create(self, validated_data):
+        name = validated_data.get('name')
+        parent_category = validated_data.get('parent_category')
+        
+        if parent_category:
+            existing_category = Category.objects.filter(name=name, parent_category=parent_category).first()
+        else:
+            existing_category = Category.objects.filter(name=name, parent_category__isnull=True).first()
+            
+        if existing_category:
+            raise serializers.ValidationError("Bu kategori zaten mevcut.")
+        
+        return super().create(validated_data)
 
 class PostSerializer(serializers.ModelSerializer):
     author = UserSerializer(read_only=True)

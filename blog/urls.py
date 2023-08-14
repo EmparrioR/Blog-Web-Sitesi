@@ -24,5 +24,5 @@ urlpatterns = [
     path('categories/', CategoryListCreateView.as_view(), name='category-list-create'),
     path('comments/', CommentListCreateView.as_view(), name='comment-list-create'),
     path('posts/', PostListCreateView.as_view(), name='post-list-create'),
-    path('get_subcategories/<int:category_id>/', views.get_subcategories, name='get_subcategories'),
+    path('get_subcategories/<int:category_id>/', views.get_subcategories, name='get_subcategories'), 
 ]   

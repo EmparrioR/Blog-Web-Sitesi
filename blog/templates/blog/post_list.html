@@ -87,7 +87,7 @@
                     </h2>
                     <p class="card-text">{{ post.content|safe| truncatechars:200 }}...</p>
                     <p class="text-muted">Yazar: {{ post.author | safe }}</p>
-                    <p class="text-muted">{{ post.pub_date }} - {{ post.category }}</p>
+                    <p class="text-muted">{{ post.pub_date }} -  {{post.category}}</p>
                 </div>
             </div>
         {% endfor %}

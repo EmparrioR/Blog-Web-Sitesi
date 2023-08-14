@@ -35,14 +35,28 @@ def post_edit(request, pk):
 
     
     if request.method == 'POST':
-        form = PostForm(request.POST, instance=post)
+        form = PostCreateForm(request.POST, instance=post)
         if form.is_valid():
             post = form.save()
             return redirect('post_list')
     else:
-        form = PostForm(instance=post)
+        form = PostCreateForm(instance=post)
 
     return render(request, 'blog/post_edit.html', {'form': form})
+
+@login_required
+def post_create(request):
+    if request.method == 'POST':
+        form = PostCreateForm(request.POST)
+        if form.is_valid():
+            post = form.save(commit=False)
+            post.author = request.user
+            post.save()
+            return redirect('post_detail', pk=post.pk)
+    else:
+        form = PostCreateForm()
+
+    return render(request, 'blog/post_create.html', {'form': form})
 
 def post_list(request):
     posts = Post.objects.all()
@@ -124,26 +138,18 @@ def reply_to_comment(request, pk):
 
 def category_list(request):
     categories = Category.objects.all()
+
+    
     return render(request, 'blog/category_list.html', {'categories': categories})
+
+    
 
 def kategoriye_gore_listele(request, category_name):
     category = get_object_or_404(Category, name=category_name)
     posts = Post.objects.filter(category=category)
     return render(request, 'blog/kategoriye_gore_listele.html', {'posts': posts, 'category': category})
 
-@login_required
-def post_create(request):
-    if request.method == 'POST':
-        form = PostCreateForm(request.POST)
-        if form.is_valid():
-            post = form.save(commit=False)
-            post.author = request.user
-            post.save()
-            return redirect('post_detail', pk=post.pk)
-    else:
-        form = PostCreateForm()
 
-    return render(request, 'blog/post_create.html', {'form': form})
 
 @login_required
 def post_delete(request, pk):
@@ -173,8 +179,14 @@ class CategoryListCreateView(ListCreateAPIView):
     permission_classes = [IsAdminUser]
     
     def perform_create(self, serializer):
-        serializer.save(author=self.request.user)
-
+        parent_category_id = self.request.data.get('parent', None)
+        
+        if parent_category_id:
+            parent_category = Category.objects.get(id=parent_category_id)
+            serializer.save(parent_category=parent_category)
+        else:
+            serializer.save()
+            
     def post(self, request, *args, **kwargs):
         serializer = self.get_serializer(data=request.data)
         if serializer.is_valid():
@@ -182,13 +194,22 @@ class CategoryListCreateView(ListCreateAPIView):
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
+    
+
+
 class CommentListCreateView(ListCreateAPIView):
     queryset = Comment.objects.all()
     serializer_class = CommentSerializer
     permission_classes = [IsAuthenticated]
 
     def perform_create(self, serializer):
-        serializer.save(author=self.request.user)
+        parent_comment_id = self.request.data.get('parent', None)
+        
+        if parent_comment_id:
+            parent_comment = Comment.objects.get(id=parent_comment_id)
+            serializer.save(author=self.request.user, parent=parent_comment)
+        else:
+            serializer.save(author=self.request.user)
 
     def post(self, request, *args, **kwargs):
         serializer = self.get_serializer(data=request.data)
