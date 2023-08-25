@@ -11,6 +11,8 @@
     <link rel="stylesheet" href="{% static 'blog/css/style.css' %}">
     <!-- Bootstrap CSS -->
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -57,6 +59,15 @@
         .logout-btn {
             float: right;
         }
+
+        .user-avatar {
+            font-size: 144px; /* İkon boyutu */
+            color: #007bff; /* İkon rengi */
+            margin-bottom: 10px; /* Avatar ile diğer bilgiler arasındaki boşluk */
+            margin-left: 225px;
+        }
+        
+        
         
     </style>
 </head>
@@ -65,8 +76,13 @@
     <div class="profile-container">
         {% if user.is_authenticated %}
         <br>
+        <div class="user-avatar">
+            <i class="fas fa-user-circle"></i>
+        </div>
+        <br>
         <div class="profile-card">
-            <h2>Kullanıcı Bilgileri</h2>
+                        
+            <h2>Kullanıcı Bilgileri <i class="fas fa-pencil-alt" style="font-size:24px;"></i></h2>
             <p>Kullanıcı Adı: {{ user.username }}</p>
             <p>Email: {{ user.email }}</p>
         </div>
@@ -83,6 +99,8 @@
         </div>
         <br>
         <a href="{% url 'logout' %}" class="btn btn-primary logout-btn " style="">Çıkış Yap</a>
+        <br>
+        <br>
         {% else %}
         <p>Kullanıcı girişi yapılmamış.</p>
         {% endif %}

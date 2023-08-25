@@ -24,7 +24,7 @@ urlpatterns = [
     path('post/create/', views.post_create, name='post_create'),
     path('post/<int:pk>/delete/', views.post_delete, name='post_delete'),
     path('create_category/', views.create_category, name='create_category'),
-    path('get_subcategories/<int:category_id>/', views.get_subcategories, name='get_subcategories'),
+    path('api/get_subcategories/<str:category_name>/', views.get_subcategories, name='get_subcategories'),
     
     path('categories/', CategoryListCreateView.as_view(authentication_classes=[JWTAuthentication], permission_classes=[IsAuthenticated]), name='category-list-create'),
     path('comments/', CommentListCreateView.as_view(authentication_classes=[JWTAuthentication], permission_classes=[IsAuthenticated]), name='comment-list-create'),

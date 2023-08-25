@@ -256,8 +256,9 @@ class PostListCreateView(ListCreateAPIView):
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
     
-def get_subcategories(request, category_id):
-    category = get_object_or_404(Category, pk=category_id)
+def get_subcategories(request, category_name):
+    category = get_object_or_404(Category, name=category_name)
     subcategories = category.subcategories.all()
     data = [{"id": subcategory.id, "name": subcategory.name} for subcategory in subcategories]
-    return JsonResponse(data, safe=False)    
+    return JsonResponse(data, safe=False)
+  
